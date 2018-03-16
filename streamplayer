@@ -1,7 +1,16 @@
 #!/bin/bash
 #trap : SIGTERM SIGINT
 
-# TODO take a radio numer in agrument, default behavior if -1
+# TODO end this
+if [ -n "$1" ] ; then
+  if [ "$1" -ge "$index_begining" ] ; then
+    stream_number="$1"
+  else
+    stream_number="$index_begining"
+  fi
+else
+  stream_number="$index_begining"
+fi
 
 # TODO what if undefined ?
 config_file=$XDG_CONFIG_HOME/streamplayer/conf
@@ -12,19 +21,19 @@ player=mplayer
 
 if [ -e $pid_file ]
 then
-  kill `cat $pid_file`
+  echo "$pid_file"
+  kill `cat /run/user/$UID/streamplayer.pid`
 else
   while read -r line
   do
-    IFS=' ' read stream_name stream_url <<< $line
-    echo $stream_name
-    $player $stream_url >/dev/null 2>/dev/null &
-    player_pid=$!
-    echo $player_pid > $pid_file
+    IFS=' ' read stream_name stream_url <<< "$line"
+    echo "$stream_name"
+    $player "$stream_url" >/dev/null 2>/dev/null &
+    player_pid="$!"
+    echo "$player_pid" > "$pid_file"
 
     wait
     echo 'next'
-    rm $pid_file
-  done <<< `cat "$config_file"`
-  exit 0
+    rm "$pid_file"
+  done < "$config_file"
 fi
